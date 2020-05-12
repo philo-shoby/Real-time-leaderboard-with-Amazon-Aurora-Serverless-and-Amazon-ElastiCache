@@ -1,0 +1,108 @@
+cd ~/environment
+
+Download the application code:
+curl –sL http://d118jxrmrxsq90.cloudfront.net/leaderboard.tar | tar -xv
+
+Install dependencies:
+npm install --prefix scripts/ && npm install --prefix application
+echo "export AWS_REGION=us-east-1" >> env.sh && source env.sh
+source env.sh
+
+Save ARN :
+secret arn
+arn:aws:secretsmanager:**********secret:Aurora-secret-gkWJTW
+
+db arn
+arn:aws:rds:us-east-***********:cluster:leaderboard
+
+echo "export DATABASE_ARN=arn:aws:rds:us-east-1:160267915072:cluster:leaderboard
+" >> env.sh
+echo "export SECRET_ARN=arn:aws:secretsmanager:us-east-1:160267915072:secret:Aurora-secret-gkWJTW" >> env.sh
+
+node scripts/createTable.js
+node scripts/insertGames.js
+node scripts/fetchHighScoresForUser.js
+node scripts/fetchHighScoresForUser2.js
+
+lambda:
+sg-0************8
+echo "export SECURITY_GROUP_ID=sg-002446d8b599744d9" >> env.sh && source env.sh
+
+elasticache:
+sg-e****8
+
+reddis-endpoint: leaderboard.nhwexz.0001.use1.cache.amazonaws.com:6379
+echo "export REDIS_ENDPOINT=leaderboard.nhwexz.0001.use1.cache.amazonaws.com:6379" >> env.sh && source env.sh
+
+node scripts/loadRedis.js
+node scripts/getTopOverallScores.js
+bash scripts/create-user-pool.sh
+bash scripts/create-user-pool-client.sh
+bash scripts/create-lambda.sh
+bash scripts/create-rest-api.sh
+
+
+curl -X GET ${BASE_URL}/users/ubecker
+
+registration:
+curl -X POST ${BASE_URL}/users \
+  -H 'Content-Type: application/json' \
+  -d '{
+	"username": "puzzlemaster",
+	"password": "Mypassword1",
+	"email": "test@hello.com"
+}'
+
+login
+curl -X POST ${BASE_URL}/login \
+  -H 'Content-Type: application/json' \
+  -d '{
+	"username": "puzzlemaster",
+	"password": "Mypassword1"
+}'
+save id token:
+export ID_TOKEN=eyJraWQiOiJiV0JyXC9ieTQ2VXBxSWJybmQzTUxiZGVkdmplc1U4NWM3cEYyOEpYdUVRaz0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI3N2FjYmE0Mi01YjhiLTQ0ODEtOTgyNy1mY2I3N2Q4MDY5NTYiLCJhdWQiOiJlcXU2**********************JLWX0ONGankVIBvQw6gg8CtqmTy95VQrNmUAZ9B5cp3NfgNgyzhLcJkvAtCsJQUFlbPKpxpU65k3v_Wyli2lRmUTzJtLBckMFP3hPdmaNZ2AGnC6kfSnTnfdTJ3GUqkaNiTh-EuVrvIG6pEgL75nbkm6CdewqwbQlVtJOaJ2hoP7eCdNPA
+
+load score:
+curl -X POST ${BASE_URL}/users/puzzlemaster \
+ -H 'Content-Type: application/json' \
+  -H "Authorization: ${ID_TOKEN}" \
+  -d '{
+	"level": 37,
+	"score": 6541
+}'
+
+without id token:
+curl -X POST ${BASE_URL}/users/puzzlemaster \
+ -H 'Content-Type: application/json' \
+  -d '{
+	"level": "37",
+	"score": "6541"
+}'
+
+add 2 more :
+curl -X POST ${BASE_URL}/users/puzzlemaster \
+ -H 'Content-Type: application/json' \
+ -H "Authorization: ${ID_TOKEN}" \
+  -d '{
+	"level": "42",
+	"score": "7142"
+}'
+
+curl -X POST ${BASE_URL}/users/puzzlemaster \
+ -H 'Content-Type: application/json' \
+ -H "Authorization: ${ID_TOKEN}" \
+  -d '{
+	"level": "48",
+	"score": "9901"
+}'
+
+fetching top score user 
+curl -X GET ${BASE_URL}/users/puzzlemaster
+
+fetching tope scores of a date:
+curl -X GET ${BASE_URL}/scores/2019-11-08
+
+clean up resourses:
+bash scripts/delete-resources.sh
+
